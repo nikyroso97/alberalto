@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Alberalto · Il taccuino di Leo</title>
+<meta name="description" content="Esplora Alberalto, l'albero grande come una montagna: scopri il perché delle cose con Leo, Bip e i loro amici.">
+<meta name="theme-color" content="#2c4a6b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alberalto">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="stile.css">
+</head>
+<body>
+
+<!-- ============ TITOLO ============ -->
+<section class="schermo on" id="titolo">
+  <div class="tit-sfondo"></div>
+  <div class="tit-nuvole"><i></i><i></i><i></i></div>
+  <div class="tit-centro">
+    <h1>Alberalto</h1>
+    <div class="tit-sotto">Il taccuino di Leo</div>
+    <div class="tit-cast">
+      <img src="img/sp-mira.png" alt=""><img src="img/sp-leo.png" alt=""><img src="img/sp-bip.png" alt="" class="bipT"><img src="img/sp-nonna-tessa.png" alt=""><img src="img/sp-tobia.png" alt=""><img src="img/sp-pico.png" alt="" class="picoT">
+    </div>
+    <div class="carica"><div class="carBar"><i></i></div><span id="caricaT">Sto preparando l'albero…</span></div>
+    <div class="tit-bottoni">
+      <button class="btn grande" id="gioca" disabled>Gioca ▸</button>
+    </div>
+    <div class="tit-nota">Nessun dato raccolto · nessuna pubblicità · funziona anche senza internet</div>
+  </div>
+</section>
+
+<!-- ============ L'ALBERO (mappa del mondo) ============ -->
+<section class="schermo" id="albero">
+  <div class="alb-sfondo"></div>
+  <div class="alb-scorri" id="albScorri">
+    <div class="alb-colonna" id="albColonna">
+      <canvas class="alb-schizzo" id="albSchizzo"></canvas>
+      <img class="alb-colore" id="albColore" src="img/albero.webp" alt="Alberalto, l'albero grande come una montagna">
+      <svg class="alb-linfa" viewBox="0 0 100 100" preserveAspectRatio="none"><path id="linfaPath" d="M47 95 C 53 86, 44 79, 50 71 S 45 57, 50 48 S 55 36, 49 27 S 52 15, 50 9 L 50 3.5"/><path id="linfaLuce" pathLength="1" d="M47 95 C 53 86, 44 79, 50 71 S 45 57, 50 48 S 55 36, 49 27 S 52 15, 50 9 L 50 3.5"/></svg>
+      <div class="alb-faro" id="albFaro"><i class="raggio"></i><i class="raggio r2"></i><b></b></div>
+      <div class="alb-lucciole" id="albLucciole"></div>
+      <div id="albPunti"></div>
+      <div class="alb-scintilla" id="albScintilla"></div>
+    </div>
+  </div>
+  <div class="hud alto">
+    <div class="gruppo">
+      <button class="tondo" id="albTaccuino" title="Taccuino">📒</button>
+      <button class="tondo" id="albAmici" title="Amici">👫</button>
+      <button class="tondo" id="albAvventure" title="Avventure">📚</button>
+    </div>
+    <div class="gruppo">
+      <span class="pill faroC">✦ Faro <b>0</b> / 12</span>
+      <button class="tondo piccolo" id="albGrandi" title="Per i grandi">⚙️</button>
+    </div>
+  </div>
+  <div class="alb-guida" id="albGuida">Tocca il <b>Borgo delle Radici</b> per entrare ▾</div>
+</section>
+
+<!-- ============ IL BORGO (panorami) ============ -->
+<section class="schermo" id="borgo">
+  <div id="tela"></div>
+  <div class="velo" id="vignetta"></div>
+  <div id="etichette"></div>
+  <div class="hud alto">
+    <div class="gruppo">
+      <button class="tondo" id="bAlbero" title="Torna all'albero">🌳</button>
+      <button class="tondo" id="bTaccuino" title="Taccuino" hidden>📒</button>
+      <button class="tondo" id="bMappa" title="Mappa">🗺️</button>
+    </div>
+    <div class="luogo" id="luogo"><b id="luogoNome"></b></div>
+    <div class="gruppo">
+      <span class="pill faroC">✦ <b>0</b> / 12</span>
+      <button class="tondo" id="bGiro" title="Muovi il telefono per guardarti intorno">📱</button>
+      <button class="tondo bipBtn" id="bBip" title="Bip, aiuto!"><img src="img/av-bip.webp" alt="Bip"></button>
+    </div>
+  </div>
+  <div class="obiettivo" id="obiettivo"></div>
+  <button class="grida" id="grida"><span>📣</span>Grida!</button>
+  <div class="fumetto" id="fumetto"><span class="av"></span><span class="t"></span></div>
+  <div class="mano" id="mano"><span>👆</span><b>Trascina per guardarti intorno</b></div>
+  <div class="giro-invito" id="giroInvito"><span>📱</span><b>Muovi il telefono per guardarti intorno!</b><button class="btn piccolo" id="giroSi">Sì!</button><button class="btn piccolo chiaro" id="giroNo">No</button></div>
+</section>
+
+<!-- ============ STRATI SOPRA TUTTO ============ -->
+<div class="finestra" id="finTaccuino"></div>
+<div class="finestra" id="finMappa"></div>
+<div class="finestra" id="finAmici"></div>
+<div class="finestra" id="finAvventure"></div>
+<div class="finestra" id="finGrandi"></div>
+<div class="finestra" id="finPiano"></div>
+<section class="lab" id="lab"></section>
+<div id="dialogo"></div>
+<div id="premio"></div>
+<div id="toast"></div>
+<div id="lampo"></div>
+<canvas id="coriandoli"></canvas>
+<div id="gira"><div><span>📱↻</span><b>Gira il telefono!</b><small>Alberalto si esplora meglio in orizzontale.</small></div></div>
+
+<script src="lib/three.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
