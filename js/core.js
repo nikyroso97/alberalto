@@ -11,7 +11,7 @@ export const TOUCH = matchMedia("(pointer: coarse)").matches;
 /* ======================== salvataggio (solo sul dispositivo) ======================== */
 const CHIAVE = "alberalto-app-v1";
 const BASE = () => ({f: {}, foglie: {}, curio: {}, visti: {}, scoperte: [], luogo: "piazza",
-  imp: {musica: .8, voci: 1, effetti: .9, giro: null}});
+  imp: {musica: .8, voci: 1, effetti: .9, giro: null, lettura: true, cast: true}});
 export let S = BASE();
 export function caricaPartita() {
   try { const d = JSON.parse(localStorage.getItem(CHIAVE) || "null"); if (d && d.f) { const b = BASE(); S = Object.assign(b, d, {imp: Object.assign(b.imp, d.imp || {})}); } } catch (e) {}
@@ -83,7 +83,30 @@ export const suono = (() => {
     s.onended = () => { if (voceSrc === s) { voceSrc = null; ducking = false; volumi(); } fine && fine(); };
     return b.duration;
   }
-  const parlando = () => !!ctx && T() < parlaFino;
+  const parlando = () => (!!ctx && T() < parlaFino) || (window.speechSynthesis && speechSynthesis.speaking);
+  /* ---------- lettura automatica (sintesi vocale del telefono) per le battute non ancora doppiate ---------- */
+  const TONO = {bip: [1.7, 1.05], leo: [1.25, 1], mira: [1.35, 1.05], tobia: [1.4, .92], nonna: [.85, .88], pico: [1.6, 1.15]};
+  let vociTTS = null;
+  const scegliVoce = () => { if (!window.speechSynthesis) return null; const v = speechSynthesis.getVoices().filter(v => /^it/i.test(v.lang)); return v.find(x => /alice|federica|elsa|google/i.test(x.name)) || v[0] || null; };
+  if (window.speechSynthesis) { vociTTS = scegliVoce(); speechSynthesis.onvoiceschanged = () => vociTTS = scegliVoce(); }
+  function leggi(chi, testo, fine) {
+    if (!window.speechSynthesis || !S.imp.lettura || S.imp.voci <= 0 || !testo) { fine && setTimeout(fine, 10); return 0; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(testo.replace(/[«»"*]/g, "").replace(/…/g, ", "));
+    u.lang = "it-IT"; if (vociTTS) u.voice = vociTTS; const [pt, rt] = TONO[chi] || [1, 1]; u.pitch = pt; u.rate = .95 * rt; u.volume = Math.min(1, S.imp.voci);
+    u.onend = u.onerror = () => fine && fine();
+    speechSynthesis.speak(u); ducking = true; volumi(); u.addEventListener("end", () => { ducking = false; volumi(); });
+    return testo.length * .065;
+  }
+  /* una battuta: voce del cast (id), voce doppiata (#codice, se elencata in audio/voci/elenco.json) o lettura automatica */
+  let doppiate = null;
+  fetch("audio/voci/elenco.json").then(r => r.ok ? r.json() : []).then(l => doppiate = new Set(l)).catch(() => doppiate = new Set());
+  async function dici(chi, testo, v, fine) {
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    if (v && v[0] === "#") { const cod = v.slice(1); v = doppiate && doppiate.has(cod) ? "voci/" + cod : null; }
+    if (v && S.imp.cast !== false) return voce(v, fine);
+    fermaVoce(); return leggi(chi, testo, fine);
+  }
   /* la stessa voce che torna indietro, più piano e ovattata (l'eco) */
   async function eco(id, ritardi) {
     if (!ctx) return; const b = await carica(id); if (!b) return;
@@ -105,7 +128,7 @@ export const suono = (() => {
     const g = ctx.createGain(); g.gain.value = v; s.connect(f).connect(g).connect(gFx); s.start(t0);
   }
   return {
-    init, ambiente, voce, fermaVoce, parlando, eco, carica, volumi,
+    init, ambiente, voce, dici, fermaVoce: () => { fermaVoce(); if (window.speechSynthesis) speechSynthesis.cancel(); }, parlando, eco, carica, volumi,
     get pronto() { return !!ctx; },
     durata: id => buf[id] ? buf[id].duration : 0,
     passo: (dl = 0) => rumore(.12, 700 + Math.random() * 300, .5, dl),
@@ -141,10 +164,11 @@ export function dialogo(battute, opz = {}) {
       let scritto = 0, finito = false, tok = {};
       mostra.tok = tok;
       const completa = () => { finito = true; tx.textContent = testo; fr.classList.add("on"); };
-      const durata = v ? await Promise.race([suono.voce(v, () => { av.classList.remove("parlando"); opz.parla && opz.parla(null); }), aspetta(900).then(() => 0)]) : (suono.fermaVoce(), 0);
+      av.classList.add("parlando");
+      const durata = await Promise.race([suono.dici(chi, testo, v, () => { av.classList.remove("parlando"); opz.parla && opz.parla(null); }), aspetta(900).then(() => 0)]);
       if (mostra.tok !== tok) return;
-      if (v && suono.parlando()) av.classList.add("parlando");
-      const ms = Math.max(18, Math.min(45, ((durata || suono.durata(v) || testo.length * .045) * 1000 * .85) / testo.length));
+      if (!suono.parlando()) setTimeout(() => { if (!suono.parlando()) av.classList.remove("parlando"); }, 1200);
+      const ms = Math.max(18, Math.min(45, ((durata || testo.length * .045) * 1000 * .85) / testo.length));
       const scrivi = () => { if (finito || mostra.tok !== tok) return; scritto++; tx.textContent = testo.slice(0, scritto); if (scritto >= testo.length) completa(); else setTimeout(scrivi, ms); };
       scrivi();
       $(".box", d).onclick = () => {
@@ -163,7 +187,7 @@ export function domanda(chi, testo, v, opzioni) {
     apriModale(); const d = $("#dialogo"); d.classList.remove("alto");
     d.innerHTML = `<div class="box"><div class="parla"><div class="avatar parlando" style="background-image:url(img/av-${AV[chi]}.webp)"></div><div><div class="nome">${NOMI[chi]}</div><div class="testo">${testo}</div></div></div>${opzioni.map((o, k) => `<button class="scelta" data-k="${k}">${o[0]}</button>`).join("")}</div>`;
     d.classList.add("on");
-    suono.voce(v, () => $(".avatar", d)?.classList.remove("parlando"));
+    suono.dici(chi, testo, v, () => $(".avatar", d)?.classList.remove("parlando"));
     $$(".scelta", d).forEach(b => b.onclick = () => {
       const val = opzioni[+b.dataset.k][1];
       b.classList.add(val === "giusta" ? "giusta" : "sbagliata");

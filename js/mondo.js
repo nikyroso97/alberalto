@@ -29,6 +29,10 @@ function textureBase() {
   TEX.raggio = disegna(64, 256, g => { const l = g.createLinearGradient(0, 0, 64, 0); l.addColorStop(0, "rgba(255,230,160,0)"); l.addColorStop(.5, "rgba(255,236,180,.9)"); l.addColorStop(1, "rgba(255,230,160,0)"); g.fillStyle = l; g.fillRect(0, 0, 64, 256); const v = g.createLinearGradient(0, 0, 0, 256); v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(.25, "rgba(0,0,0,1)"); v.addColorStop(1, "rgba(0,0,0,0)"); g.globalCompositeOperation = "destination-in"; g.fillStyle = v; g.fillRect(0, 0, 64, 256); });
   TEX.anello = disegna(128, 128, g => { g.strokeStyle = "rgba(255,255,255,.95)"; g.lineWidth = 6; g.beginPath(); g.arc(64, 64, 50, 0, 7); g.stroke(); g.strokeStyle = "rgba(255,220,140,.7)"; g.lineWidth = 3; g.beginPath(); g.arc(64, 64, 38, 0, 7); g.stroke(); });
   TEX.uccello = disegna(64, 32, g => { g.strokeStyle = "#3a2b20"; g.lineWidth = 4; g.lineCap = "round"; g.beginPath(); g.moveTo(4, 10); g.quadraticCurveTo(18, 2, 32, 18); g.quadraticCurveTo(46, 2, 60, 10); g.stroke(); });
+  TEX.scia = disegna(256, 64, g => { // la strada d'argento lasciata da una chiocciola
+    g.lineCap = "round"; g.lineJoin = "round"; const tr = () => { g.beginPath(); g.moveTo(10, 40); g.bezierCurveTo(60, 10, 90, 58, 140, 34); g.bezierCurveTo(180, 16, 210, 50, 246, 26); };
+    g.strokeStyle = "rgba(170,190,205,.55)"; g.lineWidth = 14; tr(); g.stroke(); g.strokeStyle = "rgba(235,245,252,.95)"; g.lineWidth = 6; tr(); g.stroke();
+    g.strokeStyle = "rgba(255,255,255,1)"; g.lineWidth = 2; g.setLineDash([6, 14]); tr(); g.stroke(); });
   TEX.farfalla = [["#f6b54a", "#e07a3a"], ["#f4f0e0", "#d9c9a0"], ["#9ec7f0", "#5d8fc9"]].map(([a, b]) => disegna(64, 48, g => { g.fillStyle = a; g.strokeStyle = b; g.lineWidth = 3; for (const sx of [-1, 1]) { g.beginPath(); g.ellipse(32 + sx * 14, 18, 13, 11, sx * .5, 0, 7); g.fill(); g.stroke(); g.beginPath(); g.ellipse(32 + sx * 10, 34, 9, 7, sx * -.4, 0, 7); g.fill(); g.stroke(); } g.fillStyle = "#3a2b20"; g.fillRect(30, 12, 4, 28); }));
 }
 

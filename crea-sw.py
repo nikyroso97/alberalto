@@ -1,11 +1,14 @@
 # Rigenera sw.js con l'elenco di tutti i file dell'app (da lanciare dopo ogni modifica).
 import os, hashlib, json
 base = os.path.dirname(os.path.abspath(__file__))
+# elenco delle battute già doppiate (audio/voci/<codice>.mp3), letto dal gioco
+vd = os.path.join(base, 'audio', 'voci'); os.makedirs(vd, exist_ok=True)
+json.dump(sorted(n[:-4] for n in os.listdir(vd) if n.endswith('.mp3')), open(os.path.join(vd, 'elenco.json'), 'w'))
 files, h = [], hashlib.sha1()
 for root, _, names in os.walk(base):
     for n in sorted(names):
         p = os.path.relpath(os.path.join(root, n), base)
-        if n.startswith('.') or p.startswith('.') or p in ('sw.js', 'crea-sw.py') or p.endswith('.command') or p.startswith('native'): continue
+        if n.startswith('.') or p.startswith('.') or p in ('sw.js', 'crea-sw.py') or p.endswith('.command') or p in ('editor.html', 'js/editor.js', 'README.md') or p.startswith('native'): continue
         files.append(p.replace(os.sep, '/'))
         h.update(open(os.path.join(root, n), 'rb').read())
 files.sort(); versione = h.hexdigest()[:10]

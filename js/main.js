@@ -2,7 +2,7 @@
 "use strict";
 import {$, S, caricaPartita, salva, suono, schermo, toast, occupato, aspetta} from "./core.js";
 import {preparaMondo, nPassiCaricamento, entra, esci, M, attivaGiro, spegniGiro, giroDisponibile, giroChiedePermesso} from "./mondo.js";
-import {storia, intro, aiutoBip, apriMappa, grida, aggiornaHud} from "./avventure.js";
+import {storia, ingresso, aiutoBip, apriMappa, grida, aggiornaHud, statoStoria} from "./regia.js";
 import {preparaAlbero, mostraAlbero} from "./albero.js";
 import {apriTaccuino} from "./taccuino.js";
 
@@ -36,19 +36,12 @@ async function vaiNelBorgo(luogo) {
   schermo("borgo"); orienta();
   entra(luogo);
   $("#bGiro").hidden = !giroDisponibile();
-  if (!S.f.intro) { await aspetta(500); await intro(); mano(); await aspetta(1500); }
+  await aspetta(500); await ingresso(); await aspetta(800);
   invitoGiro();
 }
 function iniziaAvventura(id) {
-  if (id === "brocca" && S.scoperte.includes("brocca")) return apriTaccuino();
-  if (id === "eco" && S.scoperte.includes("eco")) return apriTaccuino();
-  if (id === "eco" && !S.f.a2) { S.f.a2 = S.f.finale = S.f.libro = true; salva(); toast("🗺️ Nuovo luogo: il prato della Radice Cava"); return vaiNelBorgo("piazza"); }
-  if (id === "eco") return vaiNelBorgo(S.f.a2arr ? S.luogo : "piazza");
-  vaiNelBorgo(S.luogo || "piazza");
-}
-function mano() {
-  const m = $("#mano"); m.classList.add("on"); const via = () => m.classList.remove("on");
-  setTimeout(via, 7000); addEventListener("pointerdown", via, {once: true});
+  if (S.scoperte.includes(id)) return apriTaccuino();
+  if (statoStoria(id) !== "chiusa") vaiNelBorgo(S.luogo || "piazza");
 }
 
 /* ---------- il giroscopio ---------- */
@@ -81,4 +74,4 @@ $("#grida").onclick = () => grida();
 if ("serviceWorker" in navigator && location.protocol.startsWith("http") && !location.search.includes("prova")) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 
 /* ---------- solo per le prove (?prova nell'indirizzo) ---------- */
-if (location.search.includes("prova")) Promise.all([import("./core.js"), import("./mondo.js"), import("./avventure.js"), import("./albero.js"), import("./lab-brocca.js"), import("./lab-eco.js")]).then(m => window.__A = Object.assign({}, ...m, {get S() { return m[0].S; }}));
+if (location.search.includes("prova")) Promise.all([import("./core.js"), import("./mondo.js"), import("./regia.js"), import("./lab-chiocciole.js"), import("./albero.js"), import("./lab-brocca.js"), import("./lab-eco.js")]).then(m => window.__A = Object.assign({}, ...m, {get S() { return m[0].S; }}));

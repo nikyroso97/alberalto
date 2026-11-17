@@ -1,7 +1,7 @@
 /* Alberalto · il taccuino di Leo: scoperte, indizi, tesori */
 "use strict";
 import {$, $$, S, suono, finestra, chiudiModale} from "./core.js";
-import {SCOPERTE, CURIO, TESTI_CURIO, FOGLIE, NOMIMAPPA} from "./avventure.js";
+import {SCOPERTE, CURIO, TESTI_CURIO, DOVE_CURIO, FOGLIE, NOMIMAPPA, STORIE, statoStoria} from "./regia.js";
 
 export function apriTaccuino(opz = {}) {
   return new Promise(fine => {
@@ -13,11 +13,11 @@ export function apriTaccuino(opz = {}) {
       $$(".schede button", f).forEach(b => b.classList.toggle("on", b.dataset.s === s));
       if (s === "scoperte") corpo.innerHTML = S.scoperte.length ? `<div class="scoperte">${S.scoperte.map(id => pagina(id)).join("")}</div>` + `<p style="text-align:center;margin-top:10px;font-size:14px;opacity:.7">✦ ${S.scoperte.length} scoperte su 12 · ogni scoperta fa brillare il Faro della Memoria</p>`
         : `<div class="pagina vuota">Le pagine sono ancora bianche…<br>Quando capirai il <b>perché</b> di qualcosa, lo scriverai qui!</div>`;
-      if (s === "indizi") corpo.innerHTML = `<ul class="indizi">${Object.entries(SCOPERTE).filter(([id]) => id === "brocca" || S.f.a2arr).map(([id, sc]) => `<h4>${sc.titolo}</h4>` + sc.indizi().map(([ok, t]) => `<li class="${ok ? "ok" : "no"}">${ok ? t : "…ancora da scoprire"}</li>`).join("")).join("")}</ul>`;
+      if (s === "indizi") corpo.innerHTML = `<ul class="indizi">${Object.entries(SCOPERTE).filter(([id]) => statoStoria(id) !== "chiusa").map(([id, sc]) => `<h4>${sc.titolo}</h4>` + sc.indizi().map(([ok, t]) => `<li class="${ok ? "ok" : "no"}">${ok ? t : "…ancora da scoprire"}</li>`).join("")).join("")}</ul>`;
       if (s === "tesori") corpo.innerHTML = `<h4 style="font-family:Fredoka;color:var(--terra);margin-bottom:6px">🍂 Foglie d'oro · ${Object.keys(S.foglie).length} su 5</h4>
         <div class="tesori">${FOGLIE.map(k => `<div class="tesoro ${S.foglie[k] ? "" : "no"}"><span class="ic">${S.foglie[k] ? "🍂" : "❔"}</span><b>${S.foglie[k] ? NOMIMAPPA[k] : "Nascosta…"}</b></div>`).join("")}</div>
         <h4 style="font-family:Fredoka;color:var(--terra);margin:12px 0 6px">🔍 Curiosità · ${Object.keys(S.curio).length} su 7</h4>
-        <div class="tesori">${Object.entries(CURIO).map(([k, c]) => `<div class="tesoro ${S.curio[k] ? "" : "no"}"><span class="ic">${S.curio[k] ? c.ic : "✨"}</span><b>${S.curio[k] ? c.t : "Un luccichio…"}</b>${S.curio[k] ? `<small>${TESTI_CURIO[k]}</small>` : `<small>Cerca ciò che luccica: ${NOMIMAPPA[c.dove]}</small>`}</div>`).join("")}</div>`;
+        <div class="tesori">${Object.entries(CURIO).map(([k, c]) => `<div class="tesoro ${S.curio[k] ? "" : "no"}"><span class="ic">${S.curio[k] ? c.ic : "✨"}</span><b>${S.curio[k] ? c.t : "Un luccichio…"}</b>${S.curio[k] ? `<small>${TESTI_CURIO[k]}</small>` : `<small>Cerca ciò che luccica: ${NOMIMAPPA[DOVE_CURIO[k]] || ""}</small>`}</div>`).join("")}</div>`;
       suono.pop();
     };
     $$(".schede button", f).forEach(b => b.onclick = () => mostra(b.dataset.s));

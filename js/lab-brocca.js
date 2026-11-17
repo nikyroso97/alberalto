@@ -163,7 +163,7 @@ export function apriLabBrocca() {
 
     /* ---------- Bip e i compiti ---------- */
     let bipTok = 0;
-    function bip(testo, v) { if (!vivo) return; $("#bipT").textContent = testo; const av = $(".bipdice .avatar", lab); bipTok++; const t = bipTok; if (v) { av.classList.add("parlando"); suono.voce(v, () => { if (t === bipTok) av.classList.remove("parlando"); }); } else { av.classList.add("parlando"); setTimeout(() => t === bipTok && av.classList.remove("parlando"), 900); } }
+    function bip(testo, v) { if (!vivo) return; $("#bipT").textContent = testo; const av = $(".bipdice .avatar", lab); const t = ++bipTok; av.classList.add("parlando"); suono.dici("bip", testo, v, () => t === bipTok && av.classList.remove("parlando")); }
     function fatto(c) { if (!vivo || st.fatti[c]) return; st.fatti[c] = true; $(`.compito[data-c="${c}"]`, lab).classList.add("ok"); suono.tintinnio(); if (st.fatti.vento && st.fatti.smalto && st.fatti.umida) finito(); }
     function finito() { const b = $("#labCapito"); b.disabled = false; b.classList.add("pulsa"); coriandoli(innerWidth * .8, innerHeight * .85, 50); setTimeout(() => bip("Hai scoperto cosa conta davvero! Quando sei pronto, tocca «Ho capito!»"), 4200); }
     function controlla() {

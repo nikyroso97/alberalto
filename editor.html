@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alberalto · Officina delle storie</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  :root{--carta:#fbf4e3;--carta2:#f3e6c8;--inchiostro:#3a2b20;--terra:#b8652f;--muschio:#5d7a3a;--oro:#f2b33d}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Andika,system-ui,sans-serif;background:var(--carta);color:var(--inchiostro);min-height:100vh}
+  header{display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--carta2);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+  h1{font-family:Fredoka,sans-serif;font-size:22px;color:var(--terra)}
+  .schede button,.modo button,button.az{font-family:Fredoka,sans-serif;font-weight:600;font-size:15px;border:2px solid var(--carta2);background:#fff;border-radius:12px;padding:6px 12px;cursor:pointer;color:var(--inchiostro)}
+  .schede button.on,.modo button.on{background:var(--terra);border-color:var(--terra);color:#fff}
+  select{font:inherit;font-size:15px;padding:6px 8px;border-radius:10px;border:2px solid var(--carta2)}
+  main{padding:12px 16px}
+  .pano{position:relative;width:100%;overflow:auto;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.2);background:#222;cursor:crosshair}
+  .pano img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+  .seg{position:absolute;transform:translate(-50%,-50%);font-size:12px;font-weight:700;background:rgba(251,244,227,.92);border-radius:999px;padding:2px 8px;white-space:nowrap;border:2px solid var(--terra);pointer-events:none}
+  .seg.persona{border-color:var(--oro)}.seg.uscita{border-color:#3d84c6}.seg.cosa{border-color:var(--muschio)}.seg.nuovo{background:#fff3cf;border-color:#e2483a}
+  .seg.luce{border-color:#f2b33d;background:rgba(255,240,180,.9)}
+  .linea{position:absolute;width:2px;background:#e2483a;pointer-events:none}
+  .riga{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+  pre{background:#fff;border:2px solid var(--carta2);border-radius:12px;padding:10px;font-size:13px;white-space:pre-wrap;min-height:60px}
+  .aiuto{font-size:14px;opacity:.8;line-height:1.45;margin:6px 0}
+  table{border-collapse:collapse;width:100%;font-size:14px;background:#fff}
+  td,th{border-bottom:1px solid var(--carta2);padding:5px 8px;text-align:left;vertical-align:top}
+  th{background:var(--carta2);position:sticky;top:58px}
+  .stato{font-size:12px;font-weight:700;border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .cast{background:#e4f0d2}.dopp{background:#d9eaf7}.da{background:#fde3d8}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <h1>🛠️ Officina delle storie</h1>
+  <div class="schede"><button data-s="scena" class="on">🗺️ Scene e coordinate</button><button data-s="copione">🎙️ Copione per il doppiaggio</button><button data-s="storie">📚 Storie</button></div>
+</header>
+<main>
+  <section id="sScena">
+    <div class="riga"><label>Luogo: <select id="luogo"></select></label>
+      <span class="modo" id="modo"><button data-m="uscita" class="on">➜ Uscita</button><button data-m="persona">🧑 Persona</button><button data-m="cosa">✋ Cosa</button><button data-m="cerca">✨ Da cercare</button><button data-m="luce">💡 Luce</button><button data-m="curio">🔍 Curiosità</button></span>
+    </div>
+    <p class="aiuto">Clicca sul panorama per mettere un punto. Per le <b>persone</b> clicca prima sui piedi e poi sulla testa (così si misura l'altezza). Il codice da incollare nel file della storia compare qui sotto. I panorami vanno in <code>img/pano-NOME.webp</code> (3384 × 1536) con la miniatura <code>img/mini-NOME.webp</code>.</p>
+    <div class="pano" id="pano"><img id="img" alt=""></div>
+    <div class="riga"><b>Codice da incollare:</b><button class="az" id="copia">📋 Copia</button><button class="az" id="svuota">🧹 Svuota</button></div>
+    <pre id="codice"></pre>
+  </section>
+  <section id="sCopione" hidden>
+    <p class="aiuto">Tutte le battute delle storie, con il loro <b>codice</b>. Per doppiare una battuta: registra il file <code>audio/voci/CODICE.mp3</code> (per esempio <code>audio/voci/ep-002-03.mp3</code>), poi lancia <code>python3 crea-sw.py</code>. Il gioco la userà da solo al posto della lettura automatica. Le battute con il segno 🎭 hanno già una voce del cast.</p>
+    <div class="riga"><label>Personaggio: <select id="filtroChi"><option value="">tutti</option></select></label><label>Storia: <select id="filtroSt"><option value="">tutte</option></select></label><label><input type="checkbox" id="soloDa"> solo da doppiare</label><button class="az" id="scarica">⬇️ Scarica il copione (CSV)</button><span id="conta"></span></div>
+    <table><thead><tr><th>Codice</th><th>Chi</th><th>Battuta</th><th>Nota</th><th>Voce</th></tr></thead><tbody id="righe"></tbody></table>
+  </section>
+  <section id="sStorie" hidden>
+    <p class="aiuto">Le storie caricate dal gioco (file in <code>storie/</code>, elencati in <code>storie/indice.js</code>). La guida completa è in <code>07_Gioco/COME-AGGIUNGERE-UNA-STORIA.md</code>.</p>
+    <div id="elencoStorie"></div>
+  </section>
+</main>
+<script type="module" src="js/editor.js"></script>
+</body>
+</html>

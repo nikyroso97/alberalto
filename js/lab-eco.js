@@ -95,7 +95,7 @@ export function apriLabEco() {
 
     /* ---------- gridare ---------- */
     let bipTok = 0;
-    function bip(testo, v) { if (!vivo) return; $("#bipT").textContent = testo; const av = $(".bipdice .avatar", lab); const t = ++bipTok; av.classList.add("parlando"); if (v) suono.voce(v, () => t === bipTok && av.classList.remove("parlando")); else setTimeout(() => t === bipTok && av.classList.remove("parlando"), 900); }
+    function bip(testo, v) { if (!vivo) return; $("#bipT").textContent = testo; const av = $(".bipdice .avatar", lab); const t = ++bipTok; av.classList.add("parlando"); suono.dici("bip", testo, v, () => t === bipTok && av.classList.remove("parlando")); }
     function fatto(c) { if (!vivo || st.fatti[c]) return false; st.fatti[c] = true; $(`.compito[data-c="${c}"]`, lab).classList.add("ok"); suono.tintinnio(); return true; }
     let ultima = 0;
     async function grida() {

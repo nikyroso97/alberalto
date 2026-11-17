@@ -2,7 +2,7 @@
    ogni scoperta fa salire una scintilla di linfa fino al Faro della Memoria. */
 "use strict";
 import {$, $$, S, suono, finestra, dialogo, schermo, aspetta, lampo, coriandoli, apriModale, chiudiModale, cancelloGrandi, azzera, salva, toast, premio} from "./core.js";
-import {EPISODI, SCOPERTE} from "./avventure.js";
+import {EPISODI, SCOPERTE, statoStoria, STORIE} from "./regia.js";
 
 /* posizioni in % sull'illustrazione dell'albero (688×1024) */
 const PIANI = [
@@ -152,14 +152,14 @@ const AMICI = [
 ];
 function apriAmici() {
   const f = finestra("finAmici", "👫 Gli amici di Alberalto", `<div class="amici">${AMICI.map(([id, n, t]) => `<button class="amico" data-a="${id}"><img src="img/sp-${id}.png" alt=""><b>${n}</b><small>${t}</small></button>`).join("")}</div><p style="font-size:13px;opacity:.7;margin-top:8px;text-align:center">Tocca un amico per sentirlo parlare!</p>`, {largo: true});
-  $$(".amico", f).forEach(b => b.onclick = () => { const a = AMICI.find(x => x[0] === b.dataset.a); b.classList.remove("saluta"); void b.offsetWidth; b.classList.add("saluta"); suono.voce(a[3]); });
+  $$(".amico", f).forEach(b => b.onclick = () => { const a = AMICI.find(x => x[0] === b.dataset.a); b.classList.remove("saluta"); void b.offsetWidth; b.classList.add("saluta"); suono.dici(a[0] === "nonna-tessa" ? "nonna" : a[0], a[2], a[3]); });
 }
 
 /* ---------- le avventure (episodi del volume 1) ---------- */
 function apriAvventure() {
   const f = finestra("finAvventure", "📚 Le avventure di «La prima luce»", `<div class="avventure">${EPISODI.map(([ep, t, piano, pag, id], i) => {
-    const fatta = id && S.scoperte.includes(id), aperta = id && (id === "brocca" || S.f.a2 || S.scoperte.includes("brocca"));
-    return `<div class="avv ${!id ? "chiusa" : fatta ? "fatta" : ""}"><span class="n">${fatta ? "✓" : i + 1}</span><div class="tx"><b>${t}${fatta ? `<span class="faro">✦ Faro</span>` : ""}</b><small>${piano} · nel libro a pagina ${pag}${!id ? " · nel gioco presto!" : !aperta ? " · si sblocca dopo l'avventura 1" : ""}</small></div>${id ? `<button class="btn piccolo ${fatta ? "chiaro" : "verde"}" data-id="${id}" ${aperta ? "" : "disabled"}>${fatta ? "Rivedi" : "Gioca ▸"}</button>` : `<span style="font-size:22px">🔒</span>`}</div>`;
+    const fatta = id && S.scoperte.includes(id), aperta = id && statoStoria(id) !== "chiusa";
+    return `<div class="avv ${!id ? "chiusa" : fatta ? "fatta" : ""}"><span class="n">${fatta ? "✓" : i + 1}</span><div class="tx"><b>${t}${fatta ? `<span class="faro">✦ Faro</span>` : ""}</b><small>${piano} · nel libro a pagina ${pag}${!id ? " · nel gioco presto!" : !aperta ? " · si sblocca dopo l'avventura precedente" : ""}</small></div>${id ? `<button class="btn piccolo ${fatta ? "chiaro" : "verde"}" data-id="${id}" ${aperta ? "" : "disabled"}>${fatta ? "Rivedi" : "Gioca ▸"}</button>` : `<span style="font-size:22px">🔒</span>`}</div>`;
   }).join("")}</div>`, {largo: true});
   $$(".avv button", f).forEach(b => b.onclick = () => { f.chiudi(); azioni.avventura(b.dataset.id); });
 }
@@ -172,6 +172,8 @@ function apriGrandi() {
     <div class="riga"><label>🎵 Musica</label><input type="range" min="0" max="1" step=".05" value="${I.musica}" data-k="musica"></div>
     <div class="riga"><label>🗣️ Voci</label><input type="range" min="0" max="1" step=".05" value="${I.voci}" data-k="voci"></div>
     <div class="riga"><label>🔔 Effetti</label><input type="range" min="0" max="1" step=".05" value="${I.effetti}" data-k="effetti"></div>
+    <div class="riga"><label>🎭 Voci del cast</label><input type="checkbox" data-c="cast" ${I.cast !== false ? "checked" : ""}><span style="font-weight:400;font-size:14px">le battute già registrate</span></div>
+    <div class="riga"><label>📖 Lettura</label><input type="checkbox" data-c="lettura" ${I.lettura !== false ? "checked" : ""}><span style="font-weight:400;font-size:14px">la voce del dispositivo legge le battute non ancora doppiate (aiuta chi non sa ancora leggere)</span></div>
     <h3>Che cosa si impara</h3>
     <p>Ogni avventura nasce da un episodio del libro «La prima luce». Il bambino osserva, fa prove nel laboratorio di Bip (variabili vere: vento, umidità, distanza, materiali), risponde a una domanda e scrive la scoperta nel taccuino. Le metafore sono dichiarate con «è come se…».</p>
     ${Object.entries(SCOPERTE).map(([id, s]) => `<details><summary>${S.scoperte.includes(id) ? "✦" : "○"} ${s.titolo} (${s.ep}, pagina ${s.pagina})</summary><p style="margin-top:6px"><b>Per parlarne insieme:</b> ${s.parlarne}</p><p style="margin-top:6px"><b>Il vero perché:</b> ${s.vero}</p></details>`).join("")}
@@ -182,5 +184,6 @@ function apriGrandi() {
     <div class="azioni" style="justify-content:flex-start"><button class="btn chiaro piccolo" id="azzera">🔄 Ricomincia da capo</button></div>
     </div>`, {largo: true});
   $$("input[type=range]", f).forEach(r => r.oninput = () => { S.imp[r.dataset.k] = +r.value; suono.volumi(); salva(); });
+  $$("input[type=checkbox]", f).forEach(c => c.onchange = () => { S.imp[c.dataset.c] = c.checked; salva(); });
   $("#azzera").onclick = () => { if (confirm("Cancellare tutti i progressi su questo dispositivo?")) { azzera(); f.chiudi(); mostraAlbero(); toast("Si ricomincia da capo!"); } };
 }
