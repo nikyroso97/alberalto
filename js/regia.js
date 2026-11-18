@@ -198,7 +198,7 @@ async function perParlarne(id) {
 
 /* ======================== foglie d'oro e curiosità ======================== */
 export async function foglia(o) {
-  S.foglie[M.qui] = true; suono.tintinnio(); togli(o); salva();
+  S.foglie[M.qui] = true; suono.tintinnio(); const {alone, stella, anello} = o.userData; for (const x of [o, alone, stella, anello]) if (x) togli(x); salva();
   const n = Object.keys(S.foglie).length; aggiornaHud();
   await dire([n === 5 ? ["bip", "Tutte e cinque le foglie d'oro! Sei un vero esploratore!", "o3"] : n === 1 ? ["bip", "Una foglia d'oro! Chissà quante ce ne sono nel Borgo…", "o1"] : ["bip", `Un'altra foglia d'oro! (${n} su 5)`, null]]);
   if (n === 5) premio("🍂", "Tutte le foglie d'oro!", "Hai esplorato ogni angolo del Borgo delle Radici.");
